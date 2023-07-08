@@ -1,6 +1,6 @@
-name: 'Z-Wave Switch'
-packageKey: 'zwave-switch'
+name: 'Z-Wave Switch Delphimon'
+packageKey: 'zwave-switch-delph'
 permissions:
   zwave: {}
-description: "SmartThings driver for Z-Wave switch devices"
+description: "SmartThings driver for Z-Wave switch devices - Delphimon mod"
 vendorSupportInformation: "https://support.smartthings.com"

@@ -898,6 +898,12 @@ zwaveManufacturer:
     manufacturerId: 0x010F
     productType: 0x0102
     deviceProfileName: fibaro-dimmer-2
+  - id: 0109/201A/1AA4
+    deviceLabel: Monoprice 15903 Plug
+    manufacturerId: 0x0109
+    productType: 0x201A
+    productId: 0x1AA4
+    deviceProfileName: metering-switch-ext
 zwaveGeneric:
   - id: "GenericSwitch/1"
     deviceLabel: Switch

@@ -318,6 +318,17 @@ local devices = {
     PARAMETERS = {
       ledIndicator = {parameter_number = 3, size = 1}
     }
+  },
+  METERING_SWITCH_EXT = {
+    MATCHING_MATRIX = {
+      mfrs = 0x0109,
+      product_types = 0x201A,
+      product_ids = 0x1AA4
+    },
+    PARAMETERS = {
+      autoReportInterval = {parameter_number = 1, size = 1},
+      energyReportingThreshold = {parameter_number = 2, size = 2}
+    }
   }
 }
 

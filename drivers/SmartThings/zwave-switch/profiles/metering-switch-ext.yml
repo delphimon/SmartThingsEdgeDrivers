@@ -1,0 +1,37 @@
+name: metering-switch-ext
+components:
+- id: main
+  capabilities:
+  - id: switch
+    version: 1
+  - id: powerMeter
+    version: 1
+  - id: energyMeter
+    version: 1
+  - id: voltageMeasurement
+    version: 1
+  - id: currentMeasurement
+    version: 1
+  - id: refresh
+    version: 1
+  categories:
+  - name: Switch
+preferences:
+  - name: "autoReportInterval"
+    title: "Auto Reporting Interval"
+    description: "Auto reporting interval in seconds"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 60
+      maximum: 255
+      default: 60
+  - name: "energyReportingThreshold"
+    title: "Energy Reporting Threshold"
+    description: "Report when Wattage changes (Watts)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 5
+      maximum: 3600
+      default: 50
