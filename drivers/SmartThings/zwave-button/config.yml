@@ -1,5 +1,5 @@
-name: 'Z-Wave Button'
-packageKey: 'zwave-button'
+name: 'Z-Wave Button Delphimon'
+packageKey: 'zwave-button delph'
 permissions:
   zwave: {}
 description: "SmartThings driver for Z-Wave button and remote devices"

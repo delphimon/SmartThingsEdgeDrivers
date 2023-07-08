@@ -72,10 +72,10 @@ function meter_report_handler(self, device, cmd)
       value = cmd.args.meter_value,
       unit = ENERGY_UNIT_KVAH
     }
-    device:emit_event_for_endpoint(
-      cmd.src_channel,
-      capabilities.energyMeter.energy(event_arguments)
-    )
+    -- device:emit_event_for_endpoint(
+    --   cmd.src_channel,
+    --   capabilities.energyMeter.energy(event_arguments)
+    -- )
   elseif cmd.args.scale == Meter.scale.electric_meter.WATTS then
      local event_arguments = {
       value = cmd.args.meter_value,
@@ -85,7 +85,7 @@ function meter_report_handler(self, device, cmd)
       cmd.src_channel,
       capabilities.powerMeter.power(event_arguments)
     )
-elseif cmd.args.scale == Meter.scale.electric_meter.AMPERES then
+  elseif cmd.args.scale == Meter.scale.electric_meter.AMPERES then
     local event_arguments = {
      value = cmd.args.meter_value,
      unit = AMPERE_UNIT_A
@@ -94,7 +94,7 @@ elseif cmd.args.scale == Meter.scale.electric_meter.AMPERES then
      cmd.src_channel,
      capabilities.currentMeasurement.current(event_arguments)
    )
-elseif cmd.args.scale == Meter.scale.electric_meter.POWER_FACTOR then
+  elseif cmd.args.scale == Meter.scale.electric_meter.POWER_FACTOR then
     local event_arguments = {
      value = cmd.args.meter_value,
      unit = POWER_POWER_FACTOR
@@ -103,7 +103,7 @@ elseif cmd.args.scale == Meter.scale.electric_meter.POWER_FACTOR then
 --      cmd.src_channel,
 --      capabilities.powerMeter.power(event_arguments)
 --    )
-elseif cmd.args.scale == Meter.scale.electric_meter.VOLTS then
+  elseif cmd.args.scale == Meter.scale.electric_meter.VOLTS then
      local event_arguments = {
       value = cmd.args.meter_value,
       unit = VOLTAGE_UNIT_V

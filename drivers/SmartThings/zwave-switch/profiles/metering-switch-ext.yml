@@ -15,7 +15,7 @@ components:
   - id: refresh
     version: 1
   categories:
-  - name: Switch
+  - name: SmartPlug
 preferences:
   - name: "autoReportInterval"
     title: "Auto Reporting Interval"

@@ -11,6 +11,12 @@ zwaveManufacturer:
     productType: 0x4252
     productId: 0x5A31
     deviceProfileName: battery
+  - id: "026E/4D43/5A31"
+    deviceLabel: Premium Window Remote
+    manufacturerId: 0x026E
+    productType: 0x4D43
+    productId: 0x5A31
+    deviceProfileName: battery
   - id: "Fibaro/Button"
     deviceLabel: Fibaro Button
     manufacturerId: 0x010F
