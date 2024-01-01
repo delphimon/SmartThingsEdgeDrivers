@@ -28,7 +28,7 @@ local zigbee_motion_driver = {
   },
   sub_drivers = {
     require("aqara"),
-    -- require("aurora"),
+    require("aurora"),
     require("ikea"),
     require("iris"),
     require("gatorsystem"),
@@ -42,7 +42,8 @@ local zigbee_motion_driver = {
     require("centralite"),
     require("smartthings"),
     require("smartsense"),
-    require("thirdreality")
+    require("thirdreality"),
+    require("sengled")
   },
   additional_zcl_profiles = {
     [0xFC01] = true
