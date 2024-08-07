@@ -19,6 +19,7 @@ local zigbee_test_utils = require "integration_test.zigbee_test_utils"
 
 local IASZone = clusters.IASZone
 local PowerConfiguration = clusters.PowerConfiguration
+local TemperatureMeasurement = clusters.TemperatureMeasurement
 
 local IASCIEAddress = IASZone.attributes.IASCIEAddress
 local EnrollResponseCode = IASZone.types.EnrollResponseCode
@@ -52,6 +53,7 @@ test.register_coroutine_test(
     test.socket.capability:__queue_receive({ mock_device.id, { capability = "refresh", component = "main", command = "refresh", args = {} } })
     test.socket.zigbee:__expect_send({ mock_device.id, IASZone.attributes.ZoneStatus:read(mock_device) })
     test.socket.zigbee:__expect_send({ mock_device.id, PowerConfiguration.attributes.BatteryVoltage:read(mock_device) })
+    test.socket.zigbee:__expect_send({ mock_device.id, IASZone.attributes.ZoneStatus:configure_reporting(mock_device, 0xFFFF, 0x0000, 0) })
   end
 )
 
@@ -59,6 +61,14 @@ test.register_coroutine_test(
   "Configure should configure all necessary attributes",
   function()
     test.socket.device_lifecycle:__queue_receive({ mock_device.id, "added" })
+    test.socket.zigbee:__expect_send({
+      mock_device.id,
+      TemperatureMeasurement.attributes.MinMeasuredValue:read(mock_device)
+    })
+    test.socket.zigbee:__expect_send({
+      mock_device.id,
+      TemperatureMeasurement.attributes.MaxMeasuredValue:read(mock_device)
+    })
     test.wait_for_events()
 
     test.socket.zigbee:__set_channel_ordering("relaxed")
@@ -79,6 +89,7 @@ test.register_coroutine_test(
         IASZone.attributes.ZoneStatus:configure_reporting(mock_device, 30, 3600, 1)
       }
     )
+    test.socket.zigbee:__expect_send({ mock_device.id, IASZone.attributes.ZoneStatus:configure_reporting(mock_device, 0xFFFF, 0x0000, 0) })
     test.socket.zigbee:__expect_send(
       {
         mock_device.id,

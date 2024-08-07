@@ -18,6 +18,29 @@ local clusters = require "st.matter.clusters"
 local MatterDriver = require "st.matter.driver"
 local utils = require "st.utils"
 
+-- This can be removed once LuaLibs supports the PressureMeasurement cluster
+if not pcall(function(cluster) return clusters[cluster] end,
+             "PressureMeasurement") then
+  clusters.PressureMeasurement = require "PressureMeasurement"
+end
+
+-- Include driver-side definitions when lua libs api version is < 10
+local version = require "version"
+if version.api < 10 then
+  clusters.AirQuality = require "AirQuality"
+  clusters.CarbonMonoxideConcentrationMeasurement = require "CarbonMonoxideConcentrationMeasurement"
+  clusters.CarbonDioxideConcentrationMeasurement = require "CarbonDioxideConcentrationMeasurement"
+  clusters.FormaldehydeConcentrationMeasurement = require "FormaldehydeConcentrationMeasurement"
+  clusters.NitrogenDioxideConcentrationMeasurement = require "NitrogenDioxideConcentrationMeasurement"
+  clusters.OzoneConcentrationMeasurement = require "OzoneConcentrationMeasurement"
+  clusters.Pm1ConcentrationMeasurement = require "Pm1ConcentrationMeasurement"
+  clusters.Pm10ConcentrationMeasurement = require "Pm10ConcentrationMeasurement"
+  clusters.Pm25ConcentrationMeasurement = require "Pm25ConcentrationMeasurement"
+  clusters.RadonConcentrationMeasurement = require "RadonConcentrationMeasurement"
+  clusters.TotalVolatileOrganicCompoundsConcentrationMeasurement = require "TotalVolatileOrganicCompoundsConcentrationMeasurement"
+  clusters.SmokeCoAlarm = require "SmokeCoAlarm"
+end
+
 local BATTERY_CHECKED = "__battery_checked"
 
 local HUE_MANUFACTURER_ID = 0x100B
@@ -55,6 +78,10 @@ local function check_for_battery(device)
     profile_name = profile_name .. "-humidity"
   end
 
+  if device:supports_capability(capabilities.atmosphericPressureMeasurement) then
+    profile_name = profile_name .. "-pressure"
+  end
+
   if supports_battery_percentage_remaining(device) then
     profile_name = profile_name .. "-battery"
   end
@@ -86,15 +113,20 @@ local function illuminance_attr_handler(driver, device, ib, response)
 end
 
 local function temperature_attr_handler(driver, device, ib, response)
-  local temp = ib.data.value / 100.0
-  local unit = "C"
-  device:emit_event_for_endpoint(ib.endpoint_id, capabilities.temperatureMeasurement.temperature({value = temp, unit = unit}))
+  local measured_value = ib.data.value
+  if measured_value ~= nil then
+    local temp = measured_value / 100.0
+    local unit = "C"
+    device:emit_event_for_endpoint(ib.endpoint_id, capabilities.temperatureMeasurement.temperature({value = temp, unit = unit}))
+  end
 end
 
 local function humidity_attr_handler(driver, device, ib, response)
-
-  local humidity = utils.round(ib.data.value / 100.0)
-  device:emit_event_for_endpoint(ib.endpoint_id, capabilities.relativeHumidityMeasurement.humidity(humidity))
+  local measured_value = ib.data.value
+  if measured_value ~= nil then
+    local humidity = utils.round(measured_value / 100.0)
+    device:emit_event_for_endpoint(ib.endpoint_id, capabilities.relativeHumidityMeasurement.humidity(humidity))
+  end
 end
 
 local function boolean_attr_handler(driver, device, ib, response)
@@ -113,6 +145,15 @@ end
 
 local function occupancy_attr_handler(driver, device, ib, response)
   device:emit_event(ib.data.value == 0x01 and capabilities.motionSensor.motion.active() or capabilities.motionSensor.motion.inactive())
+end
+
+local function pressure_attr_handler(driver, device, ib, response)
+  local measured_value = ib.data.value
+  if measured_value ~= nil then
+    local kPa = utils.round(measured_value / 10.0)
+    local unit = "kPa"
+    device:emit_event(capabilities.atmosphericPressureMeasurement.atmosphericPressure({value = kPa, unit = unit}))
+  end
 end
 
 local matter_driver_template = {
@@ -140,6 +181,9 @@ local matter_driver_template = {
       [clusters.OccupancySensing.ID] = {
         [clusters.OccupancySensing.attributes.Occupancy.ID] = occupancy_attr_handler,
       },
+      [clusters.PressureMeasurement.ID] = {
+        [clusters.PressureMeasurement.attributes.MeasuredValue.ID] = pressure_attr_handler,
+      },
     }
   },
   -- TODO Once capabilities all have default handlers move this info there, and
@@ -162,7 +206,99 @@ local matter_driver_template = {
     },
     [capabilities.battery.ID] = {
       clusters.PowerSource.attributes.BatPercentRemaining
-    }
+    },
+    [capabilities.atmosphericPressureMeasurement.ID] = {
+      clusters.PressureMeasurement.attributes.MeasuredValue
+    },
+    [capabilities.airQualityHealthConcern.ID] = {
+      clusters.AirQuality.attributes.AirQuality
+    },
+    [capabilities.carbonMonoxideMeasurement.ID] = {
+      clusters.CarbonMonoxideConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.CarbonMonoxideConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.carbonMonoxideHealthConcern.ID] = {
+      clusters.CarbonMonoxideConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.carbonDioxideMeasurement.ID] = {
+      clusters.CarbonDioxideConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.CarbonDioxideConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.carbonDioxideHealthConcern.ID] = {
+      clusters.CarbonDioxideConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.nitrogenDioxideMeasurement.ID] = {
+      clusters.NitrogenDioxideConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.NitrogenDioxideConcentrationMeasurement.attributes.MeasurementUnit
+    },
+    [capabilities.nitrogenDioxideHealthConcern.ID] = {
+      clusters.NitrogenDioxideConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.ozoneMeasurement.ID] = {
+      clusters.OzoneConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.OzoneConcentrationMeasurement.attributes.MeasurementUnit
+    },
+    [capabilities.ozoneHealthConcern.ID] = {
+      clusters.OzoneConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.formaldehydeMeasurement.ID] = {
+      clusters.FormaldehydeConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.FormaldehydeConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.formaldehydeHealthConcern.ID] = {
+      clusters.FormaldehydeConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.veryFineDustSensor.ID] = {
+      clusters.Pm1ConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.Pm1ConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.veryFineDustHealthConcern.ID] = {
+      clusters.Pm1ConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.fineDustHealthConcern.ID] = {
+      clusters.Pm25ConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.fineDustSensor.ID] = {
+      clusters.Pm25ConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.Pm25ConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.dustSensor.ID] = {
+      clusters.Pm25ConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.Pm25ConcentrationMeasurement.attributes.MeasurementUnit,
+      clusters.Pm10ConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.Pm10ConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.dustHealthConcern.ID] = {
+      clusters.Pm10ConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.radonMeasurement.ID] = {
+      clusters.RadonConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.RadonConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.radonHealthConcern.ID] = {
+      clusters.RadonConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.tvocMeasurement.ID] = {
+      clusters.TotalVolatileOrganicCompoundsConcentrationMeasurement.attributes.MeasuredValue,
+      clusters.TotalVolatileOrganicCompoundsConcentrationMeasurement.attributes.MeasurementUnit,
+    },
+    [capabilities.tvocHealthConcern.ID] = {
+      clusters.TotalVolatileOrganicCompoundsConcentrationMeasurement.attributes.LevelValue,
+    },
+    [capabilities.smokeDetector.ID] = {
+      clusters.SmokeCoAlarm.attributes.SmokeState,
+      clusters.SmokeCoAlarm.attributes.TestInProgress,
+    },
+    [capabilities.carbonMonoxideDetector.ID] = {
+      clusters.SmokeCoAlarm.attributes.COState,
+      clusters.SmokeCoAlarm.attributes.TestInProgress,
+    },
+    [capabilities.hardwareFault.ID] = {
+      clusters.SmokeCoAlarm.attributes.HardwareFaultAlert
+    },
+    [capabilities.batteryLevel.ID] = {
+      clusters.SmokeCoAlarm.attributes.BatteryAlert,
+    },
   },
   capability_handlers = {
   },
@@ -173,7 +309,12 @@ local matter_driver_template = {
     capabilities.battery,
     capabilities.relativeHumidityMeasurement,
     capabilities.illuminanceMeasurement,
+    capabilities.atmosphericPressureMeasurement,
   },
+  sub_drivers = {
+    require("air-quality-sensor"),
+    require("smoke-co-alarm")
+  }
 }
 
 local matter_driver = MatterDriver("matter-sensor", matter_driver_template)
